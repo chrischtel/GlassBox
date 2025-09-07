@@ -87,7 +87,7 @@ Contributions are welcome in the following areas:
 
 ## License
 
-GlassBox is released under \[insert license here, e.g., Apache-2.0, LGPL-3.0].
+GlassBox is released under MPL-2.0 License.
 
 ---
 
