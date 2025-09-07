@@ -4,28 +4,6 @@ GlassBox is an experimental sandboxing and process isolation library written in 
 It provides a clean abstraction for creating and monitoring external processes under controlled conditions, with support for resource governance and lifecycle management.
 
 ---
-
-## Current Capabilities
-
-The Windows proof-of-concept implements the following:
-
-- ✅ Process creation with argument passing
-- ✅ Execution timeouts with termination
-- ✅ Job Object integration for automatic cleanup
-- ✅ Memory limits (per-process, in MB)
-- ✅ CPU usage limits (percentage-based throttling)
-- ✅ RAII-based handle management in C++
-
-Not yet implemented:
-
-- ⬜ Reduced-privilege execution (restricted tokens)
-- ⬜ Filesystem and registry isolation (AppContainer integration)
-- ⬜ Network restrictions
-- ⬜ Linux/macOS backend (`fork`/`exec`, `setrlimit`, namespaces)
-- ⬜ Process statistics API (memory usage, CPU time)
-
----
-
 ## Example Usage
 
 ```cpp
