@@ -65,7 +65,7 @@ Its purpose is educational, experimental, and to provide a foundation for furthe
 GlassBox uses CMake as its build system.
 
 ```bash
-git clone https://github.com/yourname/GlassBox.git
+git clone https://github.com/chrischtel/GlassBox.git
 cd GlassBox
 cmake -B build
 cmake --build build
