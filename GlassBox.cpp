@@ -52,12 +52,30 @@ namespace glassbox {
         }
 
         JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli{};
-        jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        jeli.BasicLimitInformation.LimitFlags = 0;
 
+        // Apply memory limit if set
+        if (config_.memoryLimitMB > 0) {
+            jeli.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_PROCESS_MEMORY;
+            jeli.ProcessMemoryLimit = config_.memoryLimitMB * 1024 * 1024;
+        }
+
+        // Apply CPU percent if set
+        if (config_.cpuPercent > 0) {
+            JOBOBJECT_CPU_RATE_CONTROL_INFORMATION cpuInfo{};
+            cpuInfo.ControlFlags = JOB_OBJECT_CPU_RATE_CONTROL_ENABLE |
+                JOB_OBJECT_CPU_RATE_CONTROL_HARD_CAP;
+            cpuInfo.CpuRate = config_.cpuPercent * 100; // percent * 100
+            if (!SetInformationJobObject(hJob.get(), JobObjectCpuRateControlInformation,
+                &cpuInfo, sizeof(cpuInfo))) {
+                std::cerr << "SetInformationJobObject (CPU) failed: " << GetLastError() << "\n";
+            }
+        }
+
+        // Finally set extended limits
         if (!SetInformationJobObject(hJob.get(), JobObjectExtendedLimitInformation,
             &jeli, sizeof(jeli))) {
-            std::cerr << "SetInformationJobObject failed (" << GetLastError() << ").\n";
-            return -1;
+            std::cerr << "SetInformationJobObject (Memory) failed: " << GetLastError() << "\n";
         }
 
         if (!AssignProcessToJobObject(hJob.get(), hProcess.get())) {
@@ -88,11 +106,11 @@ namespace glassbox {
 
     int Sandbox::run(const std::string& path) {
         std::println("Running sandbox on path: {}", path);
-        return GB_CreateProcess(path, {}, INFINITE);
+        return GB_CreateProcess(path, {}, config_.timeoutMs);
     }
 
     int Sandbox::run(const std::string& path, const std::vector<std::string>& args) {
-        return GB_CreateProcess(path, args, INFINITE);
+        return GB_CreateProcess(path, args, config_.timeoutMs);
     }
 
     int Sandbox::run_with_timeout(const std::string& path, DWORD timeout_ms) {
