@@ -12,10 +12,8 @@ add_library(GlassBox
 
 target_compile_features(GlassBox PUBLIC cxx_std_23)
 
-# Example program
-add_executable(GlassBoxExample main.cpp)
-target_link_libraries(GlassBoxExample PRIVATE GlassBox)
-target_compile_features(GlassBoxExample PRIVATE cxx_std_23)
+add_subdirectory(examples)
+
 
 # Install rules (optional)
 install(TARGETS GlassBox

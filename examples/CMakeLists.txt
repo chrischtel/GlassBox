@@ -1,0 +1,12 @@
+# Example executables
+add_executable(timeout_example timeout_example.cpp)
+target_link_libraries(timeout_example PRIVATE GlassBox)
+target_compile_features(timeout_example PRIVATE cxx_std_23)
+
+add_executable(memory_limit_example memory_limit_example.cpp)
+target_link_libraries(memory_limit_example PRIVATE GlassBox)
+target_compile_features(memory_limit_example PRIVATE cxx_std_23)
+
+add_executable(cpu_limit_example cpu_limit_example.cpp)
+target_link_libraries(cpu_limit_example PRIVATE GlassBox)
+target_compile_features(cpu_limit_example PRIVATE cxx_std_23)
