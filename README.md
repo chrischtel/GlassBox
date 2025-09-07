@@ -1,87 +1,68 @@
 ﻿# GlassBox
 
-**GlassBox** is an experimental cross-platform sandboxing library written in modern C++23.  
-It provides a clean, developer-friendly API for launching processes with **resource limits, timeouts, and isolation policies**, without exposing raw Windows or POSIX system calls.
+GlassBox is an experimental sandboxing and process isolation library written in modern C++23.  
+It provides a clean abstraction for creating and monitoring external processes under controlled conditions, with support for resource governance and lifecycle management.
 
 ---
 
-## ✨ Features (current proof-of-concept)
+## Current Capabilities
 
-- Run external processes with arguments
-- Per-process **memory limit** (via Windows Job Objects)
-- Per-process **CPU cap** (percent throttling)
-- **Timeouts** with forced termination
-- Automatic cleanup of child processes (via `KILL_ON_JOB_CLOSE`)
-- Modern C++ API with RAII safety
+The Windows proof-of-concept implements the following:
+
+- ✅ Process creation with argument passing
+- ✅ Execution timeouts with termination
+- ✅ Job Object integration for automatic cleanup
+- ✅ Memory limits (per-process, in MB)
+- ✅ CPU usage limits (percentage-based throttling)
+- ✅ RAII-based handle management in C++
+
+Not yet implemented:
+
+- ⬜ Reduced-privilege execution (restricted tokens)
+- ⬜ Filesystem and registry isolation (AppContainer integration)
+- ⬜ Network restrictions
+- ⬜ Linux/macOS backend (`fork`/`exec`, `setrlimit`, namespaces)
+- ⬜ Process statistics API (memory usage, CPU time)
 
 ---
 
-## 🚀 Example
+## Example Usage
 
 ```cpp
 #include "GlassBox.h"
 
 int main() {
     glassbox::Sandbox sb;
-    sb.setMemoryLimitMB(256);
-    sb.setCpuPercent(25);
-    sb.setTimeoutMs(5000); // 5s timeout
+    sb.setMemoryLimitMB(256);   // 256 MB per process
+    sb.setCpuPercent(25);       // 25% CPU cap
+    sb.setTimeoutMs(5000);      // 5 second timeout
 
-    int code = sb.run("notepad.exe");
-    std::println("Process exited with code {}", code);
+    int exitCode = sb.run("notepad.exe");
+    std::println("Process exited with code {}", exitCode);
 }
 ````
 
----
-
-## ⚠️ Security Notes
-
-GlassBox is **not a security product yet**.
-At this stage, it is a **process supervisor** with resource caps, not a full sandbox.
-
-* Processes still run with the **same privileges** as the parent.
-* **Filesystem and registry isolation** are not enforced yet.
-* **Network access** is not blocked.
-* On Windows, only Job Object resource limits are applied.
-* On Linux/macOS, sandboxing is not yet implemented.
-
-Do not rely on GlassBox to safely execute untrusted code at this stage.
-Its purpose right now is educational, experimental, and developer-oriented.
+Example programs can be found in the `examples/` directory.
 
 ---
 
-## 📍 Roadmap
+## Security Considerations
 
-**Phase 1 — Windows POC (current)**
+GlassBox should currently be considered a **resource governance and experimentation tool**, not a hardened sandbox:
 
-* ✅ Process spawn with args
-* ✅ Timeout & forced termination
-* ✅ Job Object with memory + CPU limits
-* ⬜ Improved error handling (`std::expected` / enums)
-* ⬜ Basic process statistics API (memory, CPU usage)
+* Processes inherit the same privileges as the parent process.
+* Filesystem, registry, and network isolation are not enforced yet.
+* Only per-process resource limits are applied on Windows.
+* Linux and macOS backends are not implemented at this stage.
 
-**Phase 2 — Windows Security Enhancements**
-
-* ⬜ Restricted tokens (drop admin rights)
-* ⬜ AppContainer support (filesystem + registry isolation)
-* ⬜ Optional network restrictions (via AppContainer or WFP)
-
-**Phase 3 — Linux/macOS Backend**
-
-* ⬜ Fork/exec wrapper with timeout
-* ⬜ `setrlimit` for memory/CPU limits
-* ⬜ Namespace isolation (`unshare`, `chroot`) on Linux
-* ⬜ macOS `sandbox_init` support
-
-**Phase 4 — Cross-Platform Unification**
-
-* ⬜ Unified config system (`SandboxConfig`)
-* ⬜ Predefined sandbox profiles (e.g. *Safe Script*, *Network Blocked*, *CI Worker*)
-* ⬜ Monitoring API (exit code, resource usage, signals)
+It should **not** be used to execute untrusted code in production environments.
+Its purpose is educational, experimental, and to provide a foundation for further development.
 
 ---
 
-## 🛠️ Build & Install
+## Build
+
+GlassBox uses CMake as its build system.
 
 ```bash
 git clone https://github.com/yourname/GlassBox.git
@@ -90,44 +71,32 @@ cmake -B build
 cmake --build build
 ```
 
-### Examples
-
-```bash
-cd build/examples
-./timeout_example
-./memory_limit_example
-./cpu_limit_example
-```
-
 ---
 
-## 📜 License
+## Contributing
 
-GlassBox is released under the MPL-2.0.
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-Areas where help is especially appreciated:
+Contributions are welcome in the following areas:
 
 * Linux/macOS backend implementation
-* Security research & AppContainer integration
+* Security enhancements on Windows
 * API design reviews
-* Documentation & examples
+* Documentation and examples
+* Unit testing and CI setup
 
 ---
 
-## 🔮 Vision
+## License
 
-The long-term goal of GlassBox is to provide a **portable, modern C++ sandboxing library** that developers can embed into tools, CI/CD systems, educational platforms, and security research environments.
-The guiding principles are:
-
-* **Clarity**: no raw WinAPI or syscalls exposed to the user
-* **Safety**: RAII, strong types, and modern C++ idioms
-* **Extensibility**: pluggable policies and config profiles
-* **Cross-platform parity**: similar features across Windows, Linux, macOS
+GlassBox is released under \[insert license here, e.g., Apache-2.0, LGPL-3.0].
 
 ---
 
-```
+## Project Goals
+
+GlassBox aims to become a **portable, modern C++ sandboxing framework**.
+By abstracting low-level OS primitives into a consistent, RAII-safe API, the library seeks to provide:
+
+* A reliable foundation for process control and resource governance.
+* Extensible configuration for varying use cases (scripts, CI workers, experiments).
+* Cross-platform support with feature parity between Windows, Linux, and macOS.
+* A clean C++23 interface that hides platform-specific complexity.
