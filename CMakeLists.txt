@@ -1,21 +1,24 @@
-﻿# CMakeList.txt : CMake project for GlassBox, include source and define
-# project specific logic here.
-#
-cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.15) # bump to modern baseline
 
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+project(GlassBox LANGUAGES CXX)
 
-project ("GlassBox")
+# Allow the user to pick static vs shared library
+option(BUILD_SHARED_LIBS "Build GlassBox as a shared library" ON)
 
-# Add source to this project's executable.
-add_executable (GlassBox "GlassBox.cpp" "GlassBox.h")
+# Add library target
+add_library(GlassBox
+    GlassBox.cpp
+    GlassBox.h
+)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET GlassBox PROPERTY CXX_STANDARD 23)
-endif()
+# Set C++ standard
+target_compile_features(GlassBox PUBLIC cxx_std_23)
 
-# TODO: Add tests and install targets if needed.
+# Installation (optional for OSS)
+install(TARGETS GlassBox
+    EXPORT GlassBoxTargets
+    DESTINATION lib
+)
+install(FILES GlassBox.h DESTINATION include)
+
+# Example (optional, can be in examples/)
