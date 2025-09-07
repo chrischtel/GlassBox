@@ -103,9 +103,7 @@ cd build/examples
 
 ## 📜 License
 
-GlassBox is released under the \[choose-your-license-here].
-(Recommended: Apache-2.0, MPL-2.0, or LGPL-3.0 depending on how you want reuse vs copyleft to work.)
-
+GlassBox is released under the MPL-2.0.
 ---
 
 ## 🤝 Contributing
