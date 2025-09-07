@@ -15,6 +15,15 @@ namespace glassbox {
         int cpuPercent = 0;           ///< CPU cap as percentage (0 = no limit).
         DWORD timeoutMs = INFINITE;   ///< Timeout in milliseconds (default = no timeout).
     };
+    
+    struct ProcessStats {
+        DWORD exitcode;
+        SIZE_T peakMemoryBytes;
+		ULONGLONG userTime100ns;
+		ULONGLONG kernelTime100ns;
+		bool timedOut;
+		int exitCode = -1;
+    };
 
     /// @brief RAII wrapper for Windows HANDLE to prevent leaks.
     class UniqueHandle {
@@ -46,6 +55,8 @@ namespace glassbox {
     class Sandbox {
     private:
         JobObjectConfig config_{};
+		ProcessStats stats_{};
+
         int GB_CreateProcess(const std::string& app,
             const std::vector<std::string>& args,
             DWORD timeout_ms);
@@ -54,6 +65,9 @@ namespace glassbox {
         Sandbox() = default;
         explicit Sandbox(const JobObjectConfig& config) : config_(config) {}
 
+		// -- process statistics ---
+        std::optional<ProcessStats> getLastStats() const;
+        void collectStats(HANDLE hProcess, DWORD exitCode, bool timedOut);
         // --- configuration setters ---
         void setMemoryLimitMB(size_t mb) { config_.memoryLimitMB = mb; }
         void setCpuPercent(int percent) { config_.cpuPercent = percent; }

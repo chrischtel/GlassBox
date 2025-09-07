@@ -1,6 +1,7 @@
 ﻿#include "GlassBox.h"
 #include <Windows.h>
 #include <vector>
+#include <Psapi.h>
 
 namespace glassbox {
 
@@ -88,20 +89,56 @@ namespace glassbox {
 
         // Wait
         DWORD waitResult = WaitForSingleObject(hProcess.get(), timeout_ms);
+
+        DWORD exitCode = 0;
+
         if (waitResult == WAIT_TIMEOUT) {
+            // Try to read exit code even though process is still running.
+            if (!GetExitCodeProcess(hProcess.get(), &exitCode)) {
+                exitCode = static_cast<DWORD>(-1); // mark unknown
+            }
+
+            collectStats(hProcess.get(), exitCode, /*timedOut=*/true);
+
             std::cerr << "Process timed out. Terminating...\n";
-            TerminateJobObject(hJob.get(), 1); // kills all processes in job
+            TerminateJobObject(hJob.get(), 1);
             return 1;
         }
 
-        // Collect exit code
-        DWORD exitCode = 0;
         if (!GetExitCodeProcess(hProcess.get(), &exitCode)) {
             std::cerr << "GetExitCodeProcess failed (" << GetLastError() << ").\n";
             return -1;
         }
 
+        collectStats(hProcess.get(), exitCode, /*timedOut=*/false);
         return static_cast<int>(exitCode);
+    }
+
+    std::optional<ProcessStats> Sandbox::getLastStats() const
+    {
+        return stats_;
+    }
+
+    void Sandbox::collectStats(HANDLE hProcess, DWORD exitCode, bool timedOut)
+    {
+        stats_.exitCode = exitCode;
+        stats_.timedOut = timedOut;
+
+        PROCESS_MEMORY_COUNTERS pmc{};
+        if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+            stats_.peakMemoryBytes = pmc.PeakWorkingSetSize;
+        }
+
+        FILETIME createTime, exitTime, kernelTime, userTime;
+        if (GetProcessTimes(hProcess, &createTime, &exitTime, &kernelTime, &userTime)) {
+            ULARGE_INTEGER kt{}, ut{};
+            kt.LowPart = kernelTime.dwLowDateTime;
+            kt.HighPart = kernelTime.dwHighDateTime;
+            ut.LowPart = userTime.dwLowDateTime;
+            ut.HighPart = userTime.dwHighDateTime;
+            stats_.kernelTime100ns = kt.QuadPart;
+            stats_.userTime100ns = ut.QuadPart;
+        }
     }
 
     int Sandbox::run(const std::string& path) {

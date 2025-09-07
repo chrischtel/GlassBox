@@ -10,3 +10,7 @@ target_compile_features(memory_limit_example PRIVATE cxx_std_23)
 add_executable(cpu_limit_example cpu_limit_example.cpp)
 target_link_libraries(cpu_limit_example PRIVATE GlassBox)
 target_compile_features(cpu_limit_example PRIVATE cxx_std_23)
+
+add_executable(cpu_hog cpu_hog.cpp)
+target_link_libraries(cpu_hog PRIVATE GlassBox)
+target_compile_features(cpu_hog PRIVATE cxx_std_23)
